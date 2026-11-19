@@ -96426,7 +96426,7 @@ try {
 } catch (e) {
 }
 var CFG = {
-  db: process.env.DB_CONNECTION || secrets.DB_CONNECTION,
+  db: String(process.env.DB_CONNECTION || secrets.DB_CONNECTION || "").trim().replace(/^["']|["']$/g, ""),
   sessionSecret: process.env.SESSION_SECRET || secrets.SESSION_SECRET,
   admins: String(process.env.ADMIN_EMAILS || (secrets.ADMIN_EMAILS || []).join(",")).split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
   port: process.env.PORT || 3e3
@@ -96645,7 +96645,14 @@ app.get("/api/health", async (req, res) => {
     await q("SELECT 1 AS ok");
     res.json({ ok: true, db: "connected", node: process.version, secretsFile: !!secrets.DB_CONNECTION });
   } catch (e) {
-    res.status(503).json({ ok: false, db: "error", message: String(e.message || e).slice(0, 300), node: process.version, secretsFile: !!secrets.DB_CONNECTION });
+    let parsed = {};
+    try {
+      const c = sql.ConnectionPool.parseConnectionString(CFG.db);
+      parsed = { server: c.server, database: c.database, user: c.user, passwordLength: String(c.password || "").length, passwordLooksMasked: /^\*+$/.test(String(c.password || "")) };
+    } catch (_) {
+      parsed = { parseError: true };
+    }
+    res.status(503).json({ ok: false, db: "error", message: String(e.message || e).slice(0, 300), node: process.version, secretsFile: !!secrets.DB_CONNECTION, parsed });
   }
 });
 app.post("/api/register", wrap(async (req, res) => {

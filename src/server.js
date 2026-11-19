@@ -13,7 +13,7 @@ const ROOT = __dirname;
 let secrets = {};
 try { secrets = JSON.parse(fs.readFileSync(path.join(ROOT, 'secrets.json'), 'utf8')); } catch (e) {}
 const CFG = {
-  db: process.env.DB_CONNECTION || secrets.DB_CONNECTION,
+  db: String(process.env.DB_CONNECTION || secrets.DB_CONNECTION || '').trim().replace(/^["']|["']$/g, ''),
   sessionSecret: process.env.SESSION_SECRET || secrets.SESSION_SECRET,
   admins: String(process.env.ADMIN_EMAILS || (secrets.ADMIN_EMAILS || []).join(',')).split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
   port: process.env.PORT || 3000
@@ -204,7 +204,11 @@ function throttle(key) {
 // ----- health -----
 app.get('/api/health', async (req, res) => {
   try { await q('SELECT 1 AS ok'); res.json({ ok: true, db: 'connected', node: process.version, secretsFile: !!secrets.DB_CONNECTION }); }
-  catch (e) { res.status(503).json({ ok: false, db: 'error', message: String(e.message || e).slice(0, 300), node: process.version, secretsFile: !!secrets.DB_CONNECTION }); }
+  catch (e) {
+    let parsed = {};
+    try { const c = sql.ConnectionPool.parseConnectionString(CFG.db); parsed = { server: c.server, database: c.database, user: c.user, passwordLength: String(c.password || '').length, passwordLooksMasked: /^\*+$/.test(String(c.password || '')) }; } catch (_) { parsed = { parseError: true }; }
+    res.status(503).json({ ok: false, db: 'error', message: String(e.message || e).slice(0, 300), node: process.version, secretsFile: !!secrets.DB_CONNECTION, parsed });
+  }
 });
 
 // ----- auth -----
