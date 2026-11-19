@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بوابة شركاء NQ-ERP</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Cairo','sans-serif']}}}}</script>
+<style>
+  body{font-family:'Cairo',sans-serif;background:#e2e8f0;color:#0f172a;margin:0;overflow-x:hidden}
+  *{-webkit-tap-highlight-color:transparent}
+  .teal-gradient{background:linear-gradient(135deg,#0f172a 0%,#134e4a 65%,#0e8388 100%)}
+  input[type=range]{accent-color:#0e8388}
+  @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .animate-screen{animation:slideUp .25s ease-out forwards}
+  .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
+  .inp{width:100%;padding:.7rem .9rem;font-size:.875rem;font-weight:700;background:#f8fafc;border:1px solid #cbd5e1;border-radius:.75rem;outline:none}
+  .inp:focus{border-color:#0e8388;background:#fff}
+  .lbl{display:block;font-size:.75rem;font-weight:800;margin-bottom:.3rem}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:1rem;padding:1rem}
+  .chip{font-size:11px;font-weight:900;padding:.2rem .6rem;border-radius:.5rem;border:1px solid}
+  .spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body class="antialiased min-h-screen flex justify-center">
+
+<div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-md flex flex-col gap-2 pointer-events-none"></div>
+
+<div class="w-full max-w-3xl bg-[#f1f5f9] min-h-screen shadow-2xl border-x border-slate-200 flex flex-col relative">
+
+  <!-- ============ LOADING ============ -->
+  <div id="loadingScreen" class="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
+    <div class="w-12 h-12 rounded-full border-4 border-teal-200 border-t-[#0e8388] spin"></div>
+    <div id="loadingMsg" class="text-sm font-black text-slate-600">جارِ تحميل بوابة الشركاء...</div>
+  </div>
+
+  <!-- ============ NO DB ============ -->
+  <div id="noDbScreen" class="hidden flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
+    <i class="fa-solid fa-plug-circle-xmark text-4xl text-slate-400"></i>
+    <div class="text-base font-black">تعذّر الاتصال بقاعدة بيانات البوابة</div>
+    <p id="noDbMsg" class="text-xs font-bold text-slate-500 max-w-sm leading-relaxed">تعذّر الاتصال بالخادم أو بقاعدة البيانات. حاول مرة أخرى بعد قليل.</p>
+  </div>
+
+  <!-- ============ REGISTER ============ -->
+  <div id="registerScreen" class="hidden flex-1 flex flex-col">
+    <div class="teal-gradient text-white px-5 pt-7 pb-8 rounded-b-[2rem] shadow-lg border-b-4 border-[#14b8a6]">
+      <div class="flex items-center justify-between mb-5">
+        <div class="inline-flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-2xl shadow" dir="ltr">
+          <svg width="36" height="31" viewBox="0 0 120 105" fill="none"><path d="M12 72 V34 C12 20 20 12 34 12 H44 C56 12 63 19 63 31 V43 H50 V32 C50 26 47 24 41 24 H35 C27 24 25 27 25 35 V72 H12 Z" fill="#0e8388"/><path d="M50 31 C50 22 57 17 67 17 H88 C100 17 107 24 107 36 V63 C107 75 100 82 88 82 H85 C86 88 90 91 97 91 H101 V102 H94 C80 102 73 95 72 82 H67 C57 82 50 75 50 64 V52 H63 V63 C63 68 66 70 71 70 H87 C92 70 94 68 94 62 V37 C94 31 92 29 87 29 H68 C64 29 63 31 63 35 V43 H50 V31 Z" fill="#0e8388"/></svg>
+          <div class="text-left border-l border-slate-200 pl-2.5">
+            <div class="text-xs font-black text-[#0f172a] leading-none">National Quality</div>
+            <div class="text-[10px] font-bold text-[#0e8388] mt-1" dir="rtl">الجودة الوطنية لتقنية المعلومات</div>
+          </div>
+        </div>
+        <span class="bg-[#134e4a] border border-[#14b8a6]/40 text-teal-200 text-[11px] font-extrabold px-3 py-1 rounded-full">بوابة الشركاء 2027</span>
+      </div>
+      <h1 class="text-xl sm:text-2xl font-black leading-snug">أهلاً بك في <span class="text-[#14b8a6]">شبكة شركاء NQ-ERP</span></h1>
+      <p class="text-xs sm:text-sm text-slate-200 font-semibold mt-1.5 leading-relaxed">سجّل دخولك ببريدك الإلكتروني الرسمي لترشيح عملائك، متابعة التارجت، وحساب عمولاتك التصاعدية من جوالك في أي وقت.</p>
+    </div>
+    <div class="px-4 sm:px-6 -mt-5 pb-8 space-y-4">
+      <div class="bg-white rounded-3xl shadow-md border border-[#e2e8f0] overflow-hidden">
+        <div class="grid grid-cols-2 bg-slate-100 p-1.5 m-3 rounded-2xl border border-slate-200">
+          <button type="button" onclick="switchAuthTab('login')" id="tabBtnLogin" class="py-2.5 rounded-xl text-sm font-black bg-[#0f172a] text-white">تسجيل الدخول</button>
+          <button type="button" onclick="switchAuthTab('register')" id="tabBtnRegister" class="py-2.5 rounded-xl text-sm font-extrabold text-slate-600">انضمام شريك جديد</button>
+        </div>
+        <form id="loginForm" onsubmit="handleLogin(event)" class="p-5 pt-2 space-y-3.5">
+          <div><label class="lbl">البريد الإلكتروني الرسمي *</label><input id="loginEmail" type="email" required dir="ltr" class="inp text-left" placeholder="name@company.sa"></div>
+          <div><label class="lbl">كلمة المرور *</label><input id="loginPass" type="password" required minlength="6" class="inp" dir="ltr"></div>
+          <button id="btnLogin" type="submit" class="w-full min-h-[48px] bg-[#0f172a] hover:bg-[#0e8388] text-white font-black rounded-xl text-sm"><i class="fa-solid fa-arrow-left ml-1"></i>دخول البوابة</button>
+          <p class="text-center text-[11px] font-bold text-slate-500">نسيت كلمة المرور؟ تواصل مع مدير حسابات الشركاء (sales14@nqs.sa) لإعادة تعيينها.</p>
+        </form>
+        <form id="registerForm" onsubmit="handleRegister(event)" class="hidden p-5 pt-2 space-y-3.5">
+          <div class="bg-teal-50/70 border border-teal-200 rounded-xl p-3 text-xs font-bold text-teal-950"><i class="fa-solid fa-circle-check text-[#0e8388] ml-1"></i> تسجيل مبسّط عبر البريد الإلكتروني الرسمي دون سجلات تجارية أو أرقام هوية.</div>
+          <div><label class="lbl">نوع الشريك *</label>
+            <div class="grid grid-cols-2 gap-2.5" id="regTypeGroup">
+              <label class="cursor-pointer border-2 border-[#0e8388] bg-teal-50/60 rounded-xl p-2.5 text-center text-xs font-black"><input type="radio" name="regType" value="corporate" checked onchange="toggleRegType()" class="hidden"> <i class="fa-solid fa-building text-[#0e8388] ml-1"></i> شركة / مكتب مهني</label>
+              <label class="cursor-pointer border border-slate-200 bg-slate-50 rounded-xl p-2.5 text-center text-xs font-extrabold text-slate-600"><input type="radio" name="regType" value="individual" onchange="toggleRegType()" class="hidden"> <i class="fa-solid fa-user-tie text-[#0e8388] ml-1"></i> فرد / مستشار مستقل</label>
+            </div></div>
+          <div><label class="lbl">اسم الشريك / الجهة *</label><input id="regName" required maxlength="120" class="inp" placeholder="مثال: مكتب الرواد للمحاسبة"></div>
+          <div><label class="lbl text-[#0e8388]">البريد الإلكتروني الرسمي *</label><input id="regEmail" type="email" required dir="ltr" maxlength="120" class="inp text-left" placeholder="name@domain.sa"></div>
+          <div><label class="lbl">كلمة المرور (6 أحرف على الأقل) *</label><input id="regPass" type="password" required minlength="6" dir="ltr" class="inp"></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div><label class="lbl">رقم الجوال *</label><input id="regPhone" type="tel" required dir="ltr" maxlength="20" class="inp text-left" placeholder="05xxxxxxxx"></div>
+            <div><label class="lbl">الآيبان البنكي (اختياري الآن)</label><input id="regIban" dir="ltr" maxlength="40" class="inp text-left" placeholder="SA00 0000 ..."></div>
+          </div>
+          <label class="flex items-start gap-2 text-[11px] font-bold text-slate-600"><input type="checkbox" required class="mt-1 accent-[#0e8388]"> أوافق على سياسة برنامج الشركاء (حماية الترشيح 180 يوماً، قاعدة الـ 30 يوماً، وإيقاف الحساب بعد 90 يوماً دون نشاط).</label>
+          <button id="btnRegister" type="submit" class="w-full min-h-[48px] bg-[#0e8388] hover:bg-[#134e4a] text-white font-black rounded-xl text-sm"><i class="fa-solid fa-check-circle ml-1"></i>إنشاء الحساب</button>
+        </form>
+        <div id="authNotice" class="hidden m-5 mt-0 rounded-xl p-3 text-xs font-bold border"></div>
+      </div>
+      <div class="text-center text-[11px] font-bold text-slate-500">شركة الجودة الوطنية لتقنية المعلومات (National Quality) © 2027</div>
+    </div>
+  </div>
+
+  <!-- ============ PARTNER PORTAL ============ -->
+  <div id="portalApp" class="hidden flex-1 flex flex-col pb-24">
+    <header class="teal-gradient text-white px-4 py-3 sticky top-0 z-40 shadow-md border-b-2 border-[#14b8a6]">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="bg-white p-1.5 rounded-xl shrink-0" dir="ltr"><svg width="26" height="22" viewBox="0 0 120 105" fill="none"><path d="M12 72 V34 C12 20 20 12 34 12 H44 C56 12 63 19 63 31 V43 H50 V32 C50 26 47 24 41 24 H35 C27 24 25 27 25 35 V72 H12 Z" fill="#0e8388"/><path d="M50 31 C50 22 57 17 67 17 H88 C100 17 107 24 107 36 V63 C107 75 100 82 88 82 H85 C86 88 90 91 97 91 H101 V102 H94 C80 102 73 95 72 82 H67 C57 82 50 75 50 64 V52 H63 V63 C63 68 66 70 71 70 H87 C92 70 94 68 94 62 V37 C94 31 92 29 87 29 H68 C64 29 63 31 63 35 V43 H50 V31 Z" fill="#0e8388"/></svg></div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5"><h1 id="hdrName" class="text-sm font-black truncate"></h1><span id="hdrTier" class="bg-[#14b8a6] text-[#0f172a] text-[10px] font-black px-2 py-0.5 rounded-full shrink-0"></span></div>
+            <div id="hdrEmail" class="text-[11px] text-teal-200 font-bold truncate" dir="ltr"></div>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button id="hdrAdminBtn" type="button" onclick="showAdmin()" class="hidden bg-white/15 text-white text-xs font-black px-2.5 py-2 rounded-xl" title="لوحة الإدارة"><i class="fa-solid fa-user-shield"></i></button>
+          <button type="button" onclick="switchTab('addLead')" class="bg-amber-400 active:scale-95 text-[#0f172a] text-xs font-black px-3 py-2 rounded-xl shadow flex items-center gap-1.5"><i class="fa-solid fa-plus"></i><span>عميل جديد</span></button>
+        </div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <section id="screenDashboard" class="p-4 space-y-4 animate-screen">
+      <div class="card space-y-3">
+        <div class="flex items-center justify-between">
+          <div><span class="text-[11px] font-extrabold text-[#0e8388] block">التارجت الربع سنوي (2 عملاء / شهر)</span><h2 id="kpiQuarterLabel" class="text-base font-black">إنجاز الربع الحالي</h2></div>
+          <div class="text-left"><span id="kpiQuarterCount" class="text-2xl font-black text-[#0e8388]">0</span><span class="text-xs font-extrabold text-slate-500"> / 6 عملاء</span></div>
+        </div>
+        <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200"><div id="kpiQuarterBar" class="bg-[#0e8388] h-full rounded-full transition-all duration-500" style="width:0%"></div></div>
+        <div class="flex items-center justify-between text-[11px] font-bold"><span id="kpiQuarterHint" class="text-slate-600"></span><span id="kpiQuarterPct" class="font-black">0%</span></div>
+        <div id="kpiActivityBox" class="rounded-xl p-3 flex items-center justify-between gap-2 text-xs border"></div>
+      </div>
+
+      <div class="bg-gradient-to-l from-[#0f172a] via-[#134e4a] to-[#0e8388] text-white rounded-2xl p-4 shadow-sm border border-[#14b8a6]/40 space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="bg-amber-400 text-[#0f172a] text-[10px] font-black px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-award ml-1"></i>مسار الترقية والدعاية الرسمية</span>
+          <span id="spotTag" class="text-[11px] font-black text-teal-200"></span>
+        </div>
+        <h3 id="spotTitle" class="text-sm font-black leading-snug"></h3>
+        <p class="text-xs text-slate-100 font-semibold leading-relaxed">فور إغلاقك <strong>الصفقة الثالثة</strong> تتم ترقيتك إلى <strong>شريك استراتيجي</strong> وتُرفع عمولتك إلى 7% ثم 8% ثم 10% + بونص 5,000 ر.س، مع الإعلان الرسمي عنك على <strong>www.nqs.sa</strong> وحساباتنا في السوشيال ميديا.</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="card">
+          <span class="text-[11px] font-bold text-slate-500 block">الصفقات المقفولة</span>
+          <div class="flex items-baseline justify-between mt-1"><span id="kpiClosed" class="text-2xl font-black">0</span><span id="kpiNextRate" class="text-[11px] font-black bg-teal-50 text-[#0e8388] px-2 py-0.5 rounded border border-teal-200"></span></div>
+          <p id="kpiUpgradeHint" class="text-[11px] text-slate-600 font-bold mt-1.5 leading-snug"></p>
+        </div>
+        <div class="bg-[#0f172a] text-white rounded-2xl p-4 border border-[#14b8a6]">
+          <span class="text-[11px] font-bold text-teal-300 block">إجمالي العمولات</span>
+          <div id="kpiTotal" class="text-xl sm:text-2xl font-black text-[#14b8a6] mt-1">0 ر.س</div>
+          <div class="text-[11px] text-slate-300 font-bold mt-1.5 flex justify-between"><span>محوّل: <strong id="kpiPaid" class="text-white">0</strong></span><span>مجدول: <strong id="kpiPending" class="text-amber-300">0</strong></span></div>
+        </div>
+      </div>
+
+      <div class="space-y-3 pt-1">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm sm:text-base font-black">عملائي المرشحون (<span id="leadsCount">0</span>)</h3>
+          <button type="button" onclick="switchTab('addLead')" class="text-xs font-black text-[#0e8388]"><i class="fa-solid fa-plus-circle ml-1"></i>تسجيل عميل</button>
+        </div>
+        <div id="leadsList" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- ADD LEAD -->
+    <section id="screenAddLead" class="hidden p-4 space-y-4 animate-screen">
+      <div class="card flex items-center justify-between">
+        <div><span class="text-[11px] font-extrabold text-[#0e8388]">نموذج الإدخال السريع — مطابق لحقول NQ CRM</span><h2 class="text-lg font-black">تسجيل عميل مرشح جديد</h2></div>
+        <span class="bg-teal-50 text-[#0e8388] border border-teal-200 text-[11px] font-black px-2.5 py-1 rounded-lg">حماية 180 يوم</span>
+      </div>
+      <form onsubmit="submitLead(event)" class="card space-y-4">
+        <div class="bg-[#f8fafc] p-3.5 rounded-2xl border border-slate-200 space-y-2.5">
+          <label class="lbl">1. رقم الهاتف الأساسي للعميل *</label>
+          <div class="flex gap-2">
+            <input id="crmPhone" type="tel" required dir="ltr" maxlength="20" placeholder="05xxxxxxxx" oninput="resetCheck()" class="inp text-left flex-1 bg-white">
+            <button type="button" onclick="checkPhone()" class="min-h-[46px] bg-[#0f172a] hover:bg-[#0e8388] text-white text-xs font-black px-4 rounded-xl shrink-0"><i class="fa-solid fa-magnifying-glass ml-1"></i>فحص CRM</button>
+          </div>
+          <div id="checkBanner" class="hidden rounded-xl p-3 text-xs font-bold leading-relaxed border"></div>
+        </div>
+        <div class="space-y-3.5">
+          <div><label class="lbl">2. اسم العميل / صاحب القرار *</label><input id="crmCustomer" required maxlength="120" class="inp" placeholder="مثال: أ. عبدالعزيز السليمان"></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div><label class="lbl">3. المسمى الوظيفي</label>
+              <select id="crmTitle" class="inp"><option>المالك / الشريك التنفيذي</option><option selected>المدير العام (GM)</option><option>المدير المالي (CFO)</option><option>مدير العمليات / المصنع</option><option>مدير تقنية المعلومات</option></select></div>
+            <div><label class="lbl">4. الشركة / المصنع *</label><input id="crmCompany" required maxlength="150" class="inp" placeholder="اسم المنشأة الرسمي"></div>
+          </div>
+          <div><label class="lbl">5. القطاع *</label>
+            <select id="crmIndustry" class="inp"><option>القطاع الصناعي (مصانع / خرسانة / أغذية)</option><option>المقاولات العامة</option><option>النقليات واللوجستيات</option><option>مصانع مؤهلة لتقييم SIRI</option><option>أخرى (منشأة متوسطة 30–200 موظف)</option></select></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div><label class="lbl">6. البريد الإلكتروني (اختياري)</label><input id="crmEmail" type="email" dir="ltr" maxlength="120" class="inp text-left" placeholder="client@company.sa"></div>
+            <div><label class="lbl">7. رقم هاتف آخر (اختياري)</label><input id="crmOther" type="tel" dir="ltr" maxlength="20" class="inp text-left" placeholder="011xxxxxxx"></div>
+          </div>
+          <div><label class="lbl">8. الموقع الإلكتروني (اختياري)</label><input id="crmWebsite" dir="ltr" maxlength="150" class="inp text-left" placeholder="www.company.sa"></div>
+          <div><label class="lbl">9. ملاحظات واحتياج العميل</label><textarea id="crmNotes" rows="2" maxlength="1000" class="inp" placeholder="مثال: يرغب في ربط المصنع بالفوترة الإلكترونية..."></textarea></div>
+        </div>
+        <div class="bg-slate-100 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold text-slate-600 border border-slate-200">
+          <span><i class="fa-solid fa-tag text-[#0e8388] ml-1"></i>المصدر: <strong class="text-[#0f172a]">Partner Portal</strong></span>
+          <span><i class="fa-solid fa-calendar text-[#0e8388] ml-1"></i>التاريخ: <strong id="leadDateLbl" class="text-[#0f172a]"></strong></span>
+          <span><i class="fa-solid fa-shield-halved text-[#0e8388] ml-1"></i>الحماية: <strong class="text-[#0e8388]">180 يوماً</strong></span>
+        </div>
+        <button id="btnSubmitLead" type="submit" class="w-full min-h-[50px] bg-[#0e8388] hover:bg-[#134e4a] text-white font-black rounded-xl shadow-md text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i><span>تسجيل العميل في نظام NQ CRM الآن</span></button>
+      </form>
+      <div class="bg-[#0f172a] text-white rounded-2xl p-4 space-y-3 border-r-4 border-[#14b8a6]">
+        <div class="text-xs font-black text-[#14b8a6]"><i class="fa-solid fa-gears ml-1"></i>ماذا يحدث بعد الإرسال؟</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] font-bold">
+          <div class="bg-white/10 p-3 rounded-xl"><span class="text-[#14b8a6] font-black block mb-0.5">1. الاعتماد (خلال 24 ساعة)</span>مراجعة مدير حسابات الشركاء وتفعيل حماية العمولة 180 يوماً.</div>
+          <div class="bg-white/10 p-3 rounded-xl"><span class="text-teal-200 font-black block mb-0.5">2. الإسناد للمبيعات المباشرة</span>يتولى Direct Sales Team العرض الفني وإغلاق العقد.</div>
+          <div class="bg-white/10 p-3 rounded-xl"><span class="text-emerald-300 font-black block mb-0.5">3. الصرف (50% / 25% / 25%)</span>50% عند التوقيع، 25% بعد 30 يوماً، و25% بعد 60 يوماً مع التحصيل.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALCULATOR -->
+    <section id="screenCalculator" class="hidden p-4 space-y-4 animate-screen">
+      <div class="card space-y-4">
+        <div><span class="text-[11px] font-extrabold text-[#0e8388]">سلم العمولات القياسي للشركاء</span><h2 class="text-lg font-black">حاسبة العمولات وجدولة الصرف</h2></div>
+        <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1" id="ladder">
+          <div class="min-w-[105px] flex-1 rounded-xl p-2.5 text-center"><div class="text-[10px] font-bold text-slate-500">عميل 1 – 2</div><div class="text-lg font-black">5%</div><div class="text-[10px] font-extrabold text-[#0e8388]">معتمد</div></div>
+          <div class="min-w-[105px] flex-1 rounded-xl p-2.5 text-center"><div class="text-[10px] font-bold text-[#0e8388]">عميل 3</div><div class="text-lg font-black">7%</div><div class="text-[10px] font-extrabold text-[#0e8388]">ترقية استراتيجي</div></div>
+          <div class="min-w-[105px] flex-1 rounded-xl p-2.5 text-center"><div class="text-[10px] font-bold text-slate-500">عميل 4 – 5</div><div class="text-lg font-black">8%</div><div class="text-[10px] font-extrabold text-[#0e8388]">استراتيجي</div></div>
+          <div class="min-w-[105px] flex-1 rounded-xl p-2.5 text-center"><div class="text-[10px] font-bold text-slate-500">عميل 6</div><div class="text-lg font-black">10%</div><div class="text-[10px] font-extrabold text-[#0e8388]">تثبيت النسبة</div></div>
+          <div class="min-w-[115px] flex-1 rounded-xl p-2.5 text-center"><div class="text-[10px] font-bold text-amber-700">عميل 7+</div><div class="text-base font-black">10% + 5k</div><div class="text-[10px] font-extrabold text-amber-700">بونص فوري</div></div>
+        </div>
+        <div class="space-y-4 bg-[#f8fafc] p-4 rounded-2xl border border-slate-200">
+          <div>
+            <div class="flex justify-between text-xs font-extrabold mb-1.5"><span>1. قيمة العقد التقديرية:</span><span id="calcLblContract" class="text-[#0e8388] bg-white px-2.5 py-0.5 rounded border font-black"></span></div>
+            <input type="range" id="calcContract" min="50000" max="250000" step="10000" value="100000" oninput="updateCalc()" class="w-full">
+            <div class="flex justify-between text-[10px] font-bold text-slate-400 mt-1"><span>50 ألف</span><span>100 ألف</span><span>250 ألف</span></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-extrabold mb-1.5"><span>2. رقم الصفقة التراكمية:</span><span id="calcLblDeal" class="text-[#0e8388] bg-white px-2.5 py-0.5 rounded border font-black"></span></div>
+            <input type="range" id="calcDeal" min="1" max="10" step="1" value="1" oninput="updateCalc()" class="w-full">
+          </div>
+        </div>
+        <div class="bg-[#0f172a] text-white rounded-2xl p-4 sm:p-5 border-2 border-[#14b8a6] space-y-3">
+          <div class="flex items-center justify-between border-b border-white/15 pb-3">
+            <div><span class="text-[11px] text-teal-300 font-bold block">عمولة هذه الصفقة</span><span id="calcSingle" class="text-2xl sm:text-3xl font-black text-[#14b8a6]"></span></div>
+            <div class="text-left"><span class="text-[11px] text-slate-400 font-bold block">الإجمالي التراكمي</span><span id="calcCum" class="text-lg font-black"></span></div>
+          </div>
+          <div id="calcTier" class="text-xs font-extrabold text-teal-200 bg-white/10 px-3 py-1.5 rounded-lg inline-block"></div>
+          <div class="space-y-1.5 pt-1 text-xs font-bold">
+            <div class="flex justify-between bg-white/5 px-3 py-2 rounded-lg"><span>• الدفعة 1 (50% عند التوقيع):</span><strong id="calcI1" class="text-[#14b8a6]"></strong></div>
+            <div class="flex justify-between bg-white/5 px-3 py-2 rounded-lg"><span>• الدفعة 2 (25% بعد 30 يوماً):</span><strong id="calcI2"></strong></div>
+            <div class="flex justify-between bg-white/5 px-3 py-2 rounded-lg"><span>• الدفعة 3 (25% بعد 60 يوماً):</span><strong id="calcI3"></strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KIT -->
+    <section id="screenKit" class="hidden p-4 space-y-4 animate-screen">
+      <div class="card"><span class="text-[11px] font-extrabold text-[#0e8388]">أدوات البيع والتسويق المعتمدة</span><h2 class="text-lg font-black">الحقيبة الرقمية وحسابات السوشيال ميديا</h2></div>
+      <div class="card space-y-3">
+        <h3 class="text-sm font-black"><i class="fa-solid fa-file-lines text-[#0e8388] ml-1"></i>ملخصات العروض (انسخ وأرسل لعميلك)</h3>
+        <div id="kitList" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+      </div>
+      <div class="card space-y-3">
+        <h3 class="text-sm font-black"><i class="fa-solid fa-share-nodes text-[#0e8388] ml-1"></i>الموقع الرسمي وحسابات NQ</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs font-black">
+          <a href="https://www.nqs.sa" target="_blank" rel="noopener" class="bg-[#0f172a] text-white p-3 rounded-xl"><i class="fa-solid fa-globe text-[#14b8a6] ml-1.5"></i>الموقع الرسمي</a>
+          <a href="https://www.linkedin.com/company/national-quality-it" target="_blank" rel="noopener" class="bg-[#0a66c2] text-white p-3 rounded-xl"><i class="fa-brands fa-linkedin ml-1.5"></i>LinkedIn</a>
+          <a href="https://x.com/nqs_sa" target="_blank" rel="noopener" class="bg-slate-900 text-white p-3 rounded-xl"><i class="fa-brands fa-x-twitter ml-1.5"></i>منصة X</a>
+          <a href="https://www.youtube.com/@nqs_sa" target="_blank" rel="noopener" class="bg-red-600 text-white p-3 rounded-xl"><i class="fa-brands fa-youtube ml-1.5"></i>YouTube</a>
+          <a href="https://www.instagram.com/nqs_sa" target="_blank" rel="noopener" class="bg-gradient-to-l from-purple-600 to-pink-600 text-white p-3 rounded-xl"><i class="fa-brands fa-instagram ml-1.5"></i>Instagram</a>
+          <a href="https://wa.me/966566295278" target="_blank" rel="noopener" class="bg-emerald-600 text-white p-3 rounded-xl"><i class="fa-brands fa-whatsapp ml-1.5"></i>واتساب الأعمال</a>
+        </div>
+      </div>
+      <div class="card space-y-3">
+        <div class="flex items-center justify-between"><h3 class="text-sm font-black">رسالة ترشيح جاهزة (واتساب)</h3>
+          <button type="button" onclick="copyText(document.getElementById('pitchText').value)" class="bg-[#0e8388] text-white text-xs font-black px-3 py-1.5 rounded-xl"><i class="fa-solid fa-copy ml-1"></i>نسخ</button></div>
+        <textarea id="pitchText" rows="4" readonly class="inp text-xs leading-relaxed">السلام عليكم أستاذنا الكريم، انطلاقاً من حرصنا على ضبط العمليات المالية والتشغيلية لديكم والامتثال لمتطلبات الفوترة الإلكترونية (فاتورة)، نرشح لكم نظام NQ-ERP المتخصص للمنشآت المتوسطة في المملكة (www.nqs.sa). يسعدنا تنسيق عرض تعريفي مختصر مع فريقهم المختص.</textarea>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="screenProfile" class="hidden p-4 space-y-4 animate-screen">
+      <div class="card space-y-3.5">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-12 h-12 rounded-2xl teal-gradient text-white flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-user-check"></i></div>
+            <div class="min-w-0"><h2 id="profName" class="text-base font-black truncate"></h2><div id="profEmail" class="text-xs font-bold text-[#0e8388] truncate" dir="ltr"></div>
+              <span id="profType" class="inline-block mt-1 bg-slate-100 text-slate-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full"></span></div>
+          </div>
+          <span id="profTier" class="bg-teal-50 text-[#0e8388] border border-teal-200 text-xs font-black px-3 py-1 rounded-xl shrink-0"></span>
+        </div>
+        <div id="profSpot" class="rounded-xl p-3 text-xs font-bold flex items-start gap-2.5 border"></div>
+      </div>
+      <div class="card space-y-3">
+        <h3 class="text-sm font-black"><i class="fa-solid fa-chart-pie text-[#0e8388] ml-1"></i>ملخص إحصائياتك</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="profStats"></div>
+      </div>
+      <div class="card space-y-3">
+        <div class="flex items-center justify-between"><h3 class="text-sm font-black"><i class="fa-solid fa-money-bill-transfer text-[#0e8388] ml-1"></i>سجل التحويلات والدفعات</h3><span class="text-[10px] font-extrabold text-slate-500">متزامن مع التحصيل</span></div>
+        <div id="payoutsList" class="space-y-2.5"></div>
+      </div>
+      <div class="card space-y-2.5 text-xs font-bold">
+        <div class="flex justify-between"><span class="text-slate-500">الجوال:</span><span id="profPhone" class="font-black" dir="ltr"></span></div>
+        <div class="flex justify-between"><span class="text-slate-500">الآيبان البنكي:</span><span id="profIban" class="font-black" dir="ltr"></span></div>
+        <div class="flex justify-between"><span class="text-slate-500">مدير حسابات الشركاء:</span><span>أ. محمد أحمد وجدي (sales14@nqs.sa)</span></div>
+        <button type="button" onclick="openEditProfile()" class="w-full mt-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 font-black py-2.5 rounded-xl"><i class="fa-solid fa-pen ml-1"></i>تحديث بيانات الحساب والآيبان</button>
+        <button type="button" onclick="openChangePassword()" class="w-full bg-slate-100 hover:bg-slate-200 border border-slate-200 font-black py-2.5 rounded-xl"><i class="fa-solid fa-key ml-1"></i>تغيير كلمة المرور</button>
+      </div>
+      <button type="button" onclick="logout()" class="w-full min-h-[48px] bg-red-50 text-red-700 border border-red-200 font-black rounded-2xl text-sm"><i class="fa-solid fa-right-from-bracket ml-1"></i>تسجيل الخروج</button>
+      <div class="hidden">
+      </div>
+    </section>
+
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-3xl bg-white/95 backdrop-blur-md border-t border-slate-200 z-50 px-1.5 py-1.5">
+      <div class="grid grid-cols-5 gap-1" id="bottomNav">
+        <button type="button" data-tab="dashboard" onclick="switchTab('dashboard')" class="navbtn"><i class="fa-solid fa-house text-sm"></i><span class="text-[10px]">الرئيسية</span></button>
+        <button type="button" data-tab="addLead" onclick="switchTab('addLead')" class="navbtn"><i class="fa-solid fa-user-plus text-sm"></i><span class="text-[10px]">عميل جديد</span></button>
+        <button type="button" data-tab="calculator" onclick="switchTab('calculator')" class="navbtn"><i class="fa-solid fa-calculator text-sm"></i><span class="text-[10px]">العمولات</span></button>
+        <button type="button" data-tab="kit" onclick="switchTab('kit')" class="navbtn"><i class="fa-solid fa-briefcase text-sm"></i><span class="text-[10px]">الحقيبة</span></button>
+        <button type="button" data-tab="profile" onclick="switchTab('profile')" class="navbtn"><i class="fa-solid fa-chart-line text-sm"></i><span class="text-[10px]">حسابي</span></button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ============ ADMIN ============ -->
+  <div id="adminApp" class="hidden flex-1 flex flex-col pb-8">
+    <header class="bg-[#0f172a] text-white px-4 py-3 sticky top-0 z-40 shadow-md border-b-2 border-amber-400">
+      <div class="flex items-center justify-between gap-2">
+        <div><div class="text-[11px] font-extrabold text-amber-300"><i class="fa-solid fa-user-shield ml-1"></i>إدارة برنامج الشركاء</div><h1 class="text-sm font-black">لوحة مدير حسابات الشركاء — NQ</h1></div>
+        <div class="flex gap-1.5"><button type="button" onclick="loadAdmin()" class="bg-white/15 text-white text-xs font-black px-2.5 py-2 rounded-xl" title="تحديث"><i class="fa-solid fa-rotate"></i></button>
+        <button type="button" onclick="showPartnerSide()" class="bg-white/15 text-white text-xs font-black px-3 py-2 rounded-xl"><i class="fa-solid fa-eye ml-1"></i>عرض كشريك</button>
+        <button type="button" onclick="logout()" class="bg-white/15 text-white text-xs font-black px-2.5 py-2 rounded-xl" title="خروج"><i class="fa-solid fa-right-from-bracket"></i></button></div>
+      </div>
+      <div class="flex gap-1.5 mt-3 overflow-x-auto no-scrollbar" id="adminTabs">
+        <button data-atab="leads" onclick="switchAdminTab('leads')" class="atab">الترشيحات <span id="aBadgeLeads" class="bg-amber-400 text-[#0f172a] rounded-full px-1.5 text-[10px]">0</span></button>
+        <button data-atab="partners" onclick="switchAdminTab('partners')" class="atab">الشركاء</button>
+        <button data-atab="payouts" onclick="switchAdminTab('payouts')" class="atab">الدفعات <span id="aBadgePay" class="bg-amber-400 text-[#0f172a] rounded-full px-1.5 text-[10px]">0</span></button>
+        <button data-atab="crm" onclick="switchAdminTab('crm')" class="atab">سجل أرقام CRM</button>
+      </div>
+    </header>
+    <div class="p-4 space-y-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="adminKpis"></div>
+
+      <section id="aLeads" class="space-y-3">
+        <div class="flex gap-1.5 overflow-x-auto no-scrollbar" id="leadFilters"></div>
+        <input id="leadSearch" oninput="renderAdmin()" class="inp bg-white" placeholder="بحث بالشركة أو الهاتف أو الشريك...">
+        <div id="aLeadsList" class="space-y-3"></div>
+      </section>
+      <section id="aPartners" class="hidden space-y-3"><div id="aPartnersList" class="space-y-3"></div></section>
+      <section id="aPayouts" class="hidden space-y-3">
+        <div class="flex gap-1.5" id="payFilters"></div>
+        <div id="aPayoutsList" class="space-y-2.5"></div>
+      </section>
+      <section id="aCrm" class="hidden space-y-3">
+        <div class="card space-y-3">
+          <h3 class="text-sm font-black"><i class="fa-solid fa-database text-[#0e8388] ml-1"></i>إضافة أرقام عملاء موجودين في الـ CRM</h3>
+          <p class="text-[11px] font-bold text-slate-500 leading-relaxed">هذه الأرقام تُستخدم في فحص قاعدة الـ 30 يوماً: إن كان آخر نشاط أقل من 30 يوماً يُمنع الشريك من تسجيله، وإن كان أكثر يُرفع لمدير المبيعات. سطر لكل عميل بالصيغة: <span dir="ltr" class="font-black">رقم الهاتف, اسم الشركة, تاريخ آخر نشاط (YYYY-MM-DD), المسؤول</span></p>
+          <textarea id="crmBulk" rows="4" dir="ltr" class="inp text-left text-xs" placeholder="0558716079, شركة سفاير التميز, 2026-11-07, فريق المبيعات"></textarea>
+          <button id="btnCrmImport" onclick="importCrm()" class="w-full bg-[#0e8388] text-white font-black py-2.5 rounded-xl text-sm"><i class="fa-solid fa-file-import ml-1"></i>حفظ في السجل</button>
+        </div>
+        <input id="crmSearch" oninput="renderAdmin()" class="inp bg-white" placeholder="بحث في السجل...">
+        <div id="aCrmList" class="space-y-2"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============ MODAL ============ -->
+  <div id="modal" class="fixed inset-0 bg-slate-950/70 z-[90] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl animate-screen">
+      <div class="teal-gradient text-white px-5 py-3.5 flex items-center justify-between"><span id="modalTitle" class="text-sm font-black"></span><button type="button" onclick="closeModal()" class="text-white/80"><i class="fa-solid fa-xmark"></i></button></div>
+      <form id="modalForm" class="p-5 space-y-3"></form>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

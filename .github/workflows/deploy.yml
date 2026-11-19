@@ -1,0 +1,61 @@
+name: Deploy to MonsterASP (nqcustomers.runasp.net)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build server bundle
+        run: |
+          npm ci
+          npm run build
+
+      - name: Write secrets.json from GitHub Secrets
+        shell: pwsh
+        env:
+          DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+        run: |
+          $admins = @($env:ADMIN_EMAILS -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+          @{ DB_CONNECTION = $env:DB_CONNECTION; SESSION_SECRET = $env:SESSION_SECRET; ADMIN_EMAILS = $admins } |
+            ConvertTo-Json | Set-Content -Encoding utf8 deploy\secrets.json
+
+      - name: Install Web Deploy if missing
+        shell: pwsh
+        run: |
+          $md = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          if (-not (Test-Path $md)) { choco install webdeploy -y --no-progress }
+
+      - name: Deploy with Web Deploy
+        shell: pwsh
+        env:
+          WD_SITE: ${{ secrets.WEBDEPLOY_SITE }}
+          WD_HOST: ${{ secrets.WEBDEPLOY_HOST }}
+          WD_USER: ${{ secrets.WEBDEPLOY_USER }}
+          WD_PASS: ${{ secrets.WEBDEPLOY_PASSWORD }}
+        run: |
+          $md = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          $src = "$env:GITHUB_WORKSPACE\deploy"
+          & $md -verb:sync `
+            "-source:contentPath=$src" `
+            "-dest:contentPath=$env:WD_SITE,computerName=https://$($env:WD_HOST):8172/msdeploy.axd?site=$($env:WD_SITE),userName=$env:WD_USER,password=$env:WD_PASS,authType=Basic" `
+            -allowUntrusted -enableRule:AppOffline `
+            "-skip:objectName=dirPath,absolutePath=logs$"
+          if ($LASTEXITCODE -ne 0) { throw "msdeploy failed with code $LASTEXITCODE" }
+
+      - name: Health check
+        shell: pwsh
+        run: |
+          Start-Sleep -Seconds 15
+          try { (Invoke-WebRequest -UseBasicParsing "http://nqcustomers.runasp.net/api/health").Content } catch { $_.Exception.Response.StatusCode; $_.ErrorDetails.Message }
