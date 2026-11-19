@@ -37,11 +37,12 @@ jobs:
           DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+          CENTRAL_KEY: ${{ secrets.CENTRAL_KEY }}
         run: |
           $secret = $env:SESSION_SECRET
           if (-not $secret) { $sha = [System.Security.Cryptography.SHA256]::Create(); $secret = [Convert]::ToHexString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes("nq-session:" + $env:DB_CONNECTION))) }
           $admins = @($env:ADMIN_EMAILS -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-          @{ DB_CONNECTION = $env:DB_CONNECTION; SESSION_SECRET = $secret; ADMIN_EMAILS = $admins } |
+          @{ DB_CONNECTION = $env:DB_CONNECTION; SESSION_SECRET = $secret; ADMIN_EMAILS = $admins; CENTRAL_KEY = $env:CENTRAL_KEY } |
             ConvertTo-Json | Set-Content -Encoding utf8 deploy\secrets.json
 
       - name: Install Web Deploy if missing

@@ -261,6 +261,7 @@ function switchTab(tab){
 
 // ---------- lead submission ----------
 function resetCheck(){ lastCheck=null; $('checkBanner').classList.add('hidden'); }
+function who(r){ return (r.company||r.rep)?`<br>${r.company?`<i class="fa-solid fa-building ml-1"></i>الشركة: <b>${esc(r.company)}</b>`:''}${r.company&&r.rep?' — ':''}${r.rep?`<i class="fa-solid fa-user-tie ml-1"></i>المندوب: <b>${esc(r.rep)}</b>`:''}`:''; }
 async function checkPhone(){
   const raw=$('crmPhone').value.trim(), b=$('checkBanner');
   if(!raw){ showToast('أدخل رقم الهاتف الأساسي أولاً','error'); return; }
@@ -270,9 +271,11 @@ async function checkPhone(){
   if(r.state==='invalid') set('border-red-300 bg-red-50 text-red-950','رقم الهاتف غير صحيح.');
   else if(r.state==='mine') set('border-sky-300 bg-sky-50 text-sky-950','<strong>هذا العميل مسجّل مسبقاً باسمك</strong> وحمايته سارية.');
   else if(r.state==='claimed') set('border-red-300 bg-red-50 text-red-950','<strong><i class="fa-solid fa-ban ml-1"></i>مسجّل باسم شريك آخر</strong> — حماية الـ 180 يوماً سارية، لا يمكن تسجيله حالياً.');
-  else if(r.state==='active_sales') set('border-red-300 bg-red-50 text-red-950',`<strong><i class="fa-solid fa-ban ml-1"></i>محمي للمبيعات المباشرة (آخر متابعة منذ ${r.days} يوم)</strong><br>الرقم يتابعه فريق المبيعات منذ أقل من 30 يوماً؛ لا يمكن تسجيله كفرصة شريك حالياً.`);
-  else if(r.state==='stagnant') set('border-amber-300 bg-amber-50 text-amber-950',`<strong><i class="fa-solid fa-scale-balanced ml-1"></i>سجل راكد (${r.days} يوم دون متابعة) — يُرفع لمدير المبيعات</strong><br>يمكنك إكمال التسجيل وسيُرفع الطلب لمدير المبيعات لاعتماد حقك.`);
+  else if(r.state==='crm') set('border-red-300 bg-red-50 text-red-950',`<strong><i class="fa-solid fa-ban ml-1"></i>مسجّل من قبل في الـ CRM${r.potential?' (عميل محتمل)':''}</strong>${who(r)}${r.since?`<br>تاريخ التسجيل: ${esc(r.since)}`:''}${r.days!=null?`<br>آخر تواصل منذ ${r.days} يوم`:''}<br>لا يمكن تسجيله كفرصة شريك.`);
+  else if(r.state==='active_sales') set('border-red-300 bg-red-50 text-red-950',`<strong><i class="fa-solid fa-ban ml-1"></i>محمي للمبيعات المباشرة (آخر متابعة منذ ${r.days} يوم)</strong>${who(r)}<br>الرقم يتابعه فريق المبيعات منذ أقل من 30 يوماً؛ لا يمكن تسجيله كفرصة شريك حالياً.`);
+  else if(r.state==='stagnant') set('border-amber-300 bg-amber-50 text-amber-950',`<strong><i class="fa-solid fa-scale-balanced ml-1"></i>سجل راكد (${r.days} يوم دون متابعة) — يُرفع لمدير المبيعات</strong>${who(r)}<br>يمكنك إكمال التسجيل وسيُرفع الطلب لمدير المبيعات لاعتماد حقك.`);
   else set('border-emerald-300 bg-emerald-50 text-emerald-950','<strong><i class="fa-solid fa-circle-check ml-1"></i>عميل جديد غير مسجل — متاح للتسجيل!</strong><br>عند الإرسال تُفعَّل حماية الترشيح 180 يوماً باسمك.');
+  if(r.crmUnchecked) b.insertAdjacentHTML('beforeend','<br><span class="text-amber-700"><i class="fa-solid fa-triangle-exclamation ml-1"></i>مقدرناش نفحص الـ CRM دلوقتي — النتيجة من سجل البوابة بس، وهيتراجع قبل الاعتماد.</span>');
   return r;
 }
 async function submitLead(e){

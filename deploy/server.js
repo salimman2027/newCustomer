@@ -96429,7 +96429,10 @@ var CFG = {
   db: String(process.env.DB_CONNECTION || secrets.DB_CONNECTION || "").trim().replace(/^["']|["']$/g, ""),
   sessionSecret: process.env.SESSION_SECRET || secrets.SESSION_SECRET,
   admins: String(process.env.ADMIN_EMAILS || (secrets.ADMIN_EMAILS || []).join(",")).split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
-  port: process.env.PORT || 3e3
+  port: process.env.PORT || 3e3,
+  // سيرفر السنترال (NQ Call Monitor): بيفحص الرقم في الـ CRM وسجل المكالمات
+  centralUrl: String(process.env.CENTRAL_URL || secrets.CENTRAL_URL || "https://3.89.245.93.sslip.io").replace(/\/+$/, ""),
+  centralKey: process.env.CENTRAL_KEY || secrets.CENTRAL_KEY || ""
 };
 var poolPromise = null;
 function getPool() {
@@ -96643,7 +96646,7 @@ function throttle(key) {
 app.get("/api/health", async (req, res) => {
   try {
     await q("SELECT 1 AS ok");
-    res.json({ ok: true, db: "connected", node: process.version, secretsFile: !!secrets.DB_CONNECTION });
+    res.json({ ok: true, db: "connected", node: process.version, secretsFile: !!secrets.DB_CONNECTION, crmCheck: !!CFG.centralKey });
   } catch (e) {
     let parsed = {};
     try {
@@ -96728,18 +96731,59 @@ app.post("/api/me/password", auth(), wrap(async (req, res) => {
   await q("UPDATE dbo.nq_users SET password_hash=@h WHERE id=@id", { id: [sql.UniqueIdentifier, req.user.id], h: await bcrypt.hash(String(b.next), 10) });
   res.json({ ok: true });
 }));
+async function centralCheck(k) {
+  if (!CFG.centralKey) return null;
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 8e3);
+    const url = `${CFG.centralUrl}/calls-app/partner-check?phone=0${k}`;
+    if (typeof fetch !== "function") {
+      return await new Promise((res) => {
+        const rq = require("https").get(url, { headers: { "X-Partner-Key": CFG.centralKey }, timeout: 8e3 }, (rs) => {
+          let b = "";
+          rs.on("data", (c) => b += c);
+          rs.on("end", () => {
+            try {
+              res(rs.statusCode === 200 ? JSON.parse(b) : { error: true });
+            } catch (e) {
+              res({ error: true });
+            }
+          });
+        });
+        rq.on("error", () => res({ error: true }));
+        rq.on("timeout", () => {
+          rq.destroy();
+          res({ error: true });
+        });
+      });
+    }
+    const r = await fetch(url, { headers: { "X-Partner-Key": CFG.centralKey }, signal: ctl.signal });
+    clearTimeout(t);
+    return r.ok ? await r.json() : { error: true };
+  } catch (e) {
+    return { error: true };
+  }
+}
 async function checkPhone(raw, uid) {
   const k = normPhone(raw);
   if (k.length < 7) return { state: "invalid", key: k };
   const [l] = await q(`SELECT TOP 1 partner_id FROM dbo.nq_leads WHERE phone_key=@k AND status<>'rejected'
                        AND submitted_at > DATEADD(day,-180,SYSUTCDATETIME()) ORDER BY submitted_at DESC`, { k });
   if (l) return { state: String(l.partner_id).toLowerCase() === String(uid).toLowerCase() ? "mine" : "claimed", key: k };
+  const cc = await centralCheck(k);
+  if (cc && cc.found) {
+    const info = { company: cc.company || "", rep: cc.rep || "", key: k };
+    if (cc.crm) return { state: "crm", ...info, potential: !!cc.crm.potential, since: cc.crm.created || "", days: cc.calls ? cc.calls.days : null };
+    const d = cc.calls ? cc.calls.days : 999;
+    return { state: d < 30 ? "active_sales" : "stagnant", days: d, ...info };
+  }
+  const unchecked = !!(cc && cc.error);
   const [c] = await q("SELECT last_activity FROM dbo.nq_crm_phones WHERE phone_key=@k", { k });
   if (c) {
     const d = daysBetween(c.last_activity, todayRiyadh());
-    return { state: d < 30 ? "active_sales" : "stagnant", days: d, key: k };
+    return { state: d < 30 ? "active_sales" : "stagnant", days: d, key: k, crmUnchecked: unchecked };
   }
-  return { state: "new", key: k };
+  return { state: "new", key: k, crmUnchecked: unchecked };
 }
 app.post("/api/phone-check", auth(), wrap(async (req, res) => {
   const r = await checkPhone((req.body || {}).phone, req.user.id);
@@ -96753,7 +96797,7 @@ app.post("/api/leads", auth(), wrap(async (req, res) => {
   const customer = clip(b.customer, 150), company = clip(b.company, 200);
   if (!customer || !company) throw fail(400, "MISSING_FIELDS");
   const chk = await checkPhone(b.phone, req.user.id);
-  if (["invalid", "mine", "claimed", "active_sales"].includes(chk.state)) throw fail(409, "BLOCKED:" + chk.state);
+  if (["invalid", "mine", "claimed", "active_sales", "crm"].includes(chk.state)) throw fail(409, "BLOCKED:" + chk.state);
   const t = todayRiyadh();
   const ticket = "NQ-" + t.slice(2, 4) + t.slice(5, 7) + "-" + (1e3 + crypto2.randomInt(9e3));
   const [lead] = await q(`INSERT INTO dbo.nq_leads(partner_id,ticket,phone,phone_key,customer,title,company,industry,email,other_phone,website,notes,check_state,status)
