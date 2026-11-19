@@ -72,4 +72,4 @@ jobs:
         shell: pwsh
         run: |
           Start-Sleep -Seconds 15
-          try { (Invoke-WebRequest -UseBasicParsing "http://nqcustomers.runasp.net/api/health").Content } catch { $_.Exception.Response.StatusCode; $_.ErrorDetails.Message }
+          try { (Invoke-WebRequest -UseBasicParsing "http://nqcustomers.runasp.net/api/health").Content; try { "home over http -> " + (Invoke-WebRequest -UseBasicParsing -MaximumRedirection 0 -ErrorAction SilentlyContinue "http://nqcustomers.runasp.net/").StatusCode } catch { "home over http -> " + $_.Exception.Response.StatusCode.value__ } } catch { $_.Exception.Response.StatusCode; $_.ErrorDetails.Message }
