@@ -9,11 +9,22 @@ jobs:
   deploy:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check required secrets
+        shell: pwsh
+        env:
+          WD_PASS: ${{ secrets.WEBDEPLOY_PASSWORD }}
+          DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
+        run: |
+          $missing = @()
+          if (-not $env:WD_PASS) { $missing += 'WEBDEPLOY_PASSWORD' }
+          if (-not $env:DB_CONNECTION) { $missing += 'DB_CONNECTION' }
+          if ($missing.Count) { throw "Missing GitHub secrets: $($missing -join ', ')  (Settings > Secrets and variables > Actions)" }
 
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Build server bundle
         run: |
@@ -27,8 +38,10 @@ jobs:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
         run: |
+          $secret = $env:SESSION_SECRET
+          if (-not $secret) { $sha = [System.Security.Cryptography.SHA256]::Create(); $secret = [Convert]::ToHexString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes("nq-session:" + $env:DB_CONNECTION))) }
           $admins = @($env:ADMIN_EMAILS -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-          @{ DB_CONNECTION = $env:DB_CONNECTION; SESSION_SECRET = $env:SESSION_SECRET; ADMIN_EMAILS = $admins } |
+          @{ DB_CONNECTION = $env:DB_CONNECTION; SESSION_SECRET = $secret; ADMIN_EMAILS = $admins } |
             ConvertTo-Json | Set-Content -Encoding utf8 deploy\secrets.json
 
       - name: Install Web Deploy if missing
@@ -40,9 +53,9 @@ jobs:
       - name: Deploy with Web Deploy
         shell: pwsh
         env:
-          WD_SITE: ${{ secrets.WEBDEPLOY_SITE }}
-          WD_HOST: ${{ secrets.WEBDEPLOY_HOST }}
-          WD_USER: ${{ secrets.WEBDEPLOY_USER }}
+          WD_SITE: site109140
+          WD_HOST: site109140.siteasp.net
+          WD_USER: site109140
           WD_PASS: ${{ secrets.WEBDEPLOY_PASSWORD }}
         run: |
           $md = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"

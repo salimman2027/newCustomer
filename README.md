@@ -40,13 +40,10 @@ deploy/                  ← هذا المجلد هو ما يُرفع إلى www
 
 | الاسم | القيمة |
 |---|---|
-| `WEBDEPLOY_HOST` | `site109140.siteasp.net` |
-| `WEBDEPLOY_SITE` | `site109140` |
-| `WEBDEPLOY_USER` | `site109140` |
-| `WEBDEPLOY_PASSWORD` | كلمة مرور Web Deploy (من ملف publishSettings) |
-| `DB_CONNECTION` | نص الاتصال الكامل بقاعدة البيانات مع كلمة المرور |
-| `SESSION_SECRET` | نص عشوائي طويل |
+| `WEBDEPLOY_PASSWORD` | كلمة مرور Web Deploy (قيمة `userPWD` في ملف publishSettings) |
+| `DB_CONNECTION` | نص الاتصال الكامل بقاعدة البيانات **مع كلمة المرور** |
 | `ADMIN_EMAILS` | بريد المدير (أكثر من بريد: افصل بفاصلة) |
+| `SESSION_SECRET` | اختياري — نص عشوائي طويل لتوقيع الجلسات |
 
 3. **Actions → Deploy to MonsterASP → Run workflow** (أو أي push).
 4. آخر خطوة في الـ workflow تفتح `/api/health` وتطبع النتيجة: `"db":"connected"` تعني أن كل شيء يعمل.
